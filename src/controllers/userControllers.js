@@ -252,6 +252,58 @@ export async function updateCustomer(request, response) {
     };
 }
 
+export async function getRentalsList(request, response) {
+
+    const customerSearch = Number(request.query.customerId);
+    const gameSearch = Number(request.query.gameId);
+    let rentalsList;
+
+    try {
+        if (customerSearch) {
+            rentalsList = await conection.query(
+                `SELECT rentals.*, customers.id, customers.name as "customerName", games.id, games.name as "gameName", games."categoryId", categories.name AS "categoryName" FROM rentals
+                JOIN customers ON rentals."customerId" = customers.id
+                JOIN games ON rentals."gameId" = games.id
+                JOIN categories ON games."categoryId" = categories.id
+                WHERE rentals."customerId" = $1`, [customerSearch]
+            );
+        } else {
+            if (gameSearch) {
+                rentalsList = await conection.query(
+                    `SELECT rentals.*, customers.id, customers.name as "customerName", games.id, games.name as "gameName", games."categoryId", categories.name AS "categoryName" FROM rentals
+                    JOIN customers ON rentals."customerId" = customers.id
+                    JOIN games ON rentals."gameId" = games.id
+                    JOIN categories ON games."categoryId" = categories.id
+                    WHERE rentals."gameId" = $1`, [gameSearch]
+                );
+            } else {
+                rentalsList  = await conection.query(
+                    `SELECT rentals.*, customers.id, customers.name as "customerName", games.id, games.name as 'gameName", games."categoryId", categories.name AS "categoryName" FROM rentals
+                    JOIN customers ON rentals."customerId" = customers.id
+                    JOIN games ON rentals."gameId" = games.id
+                    JOIN categories ON games."categoryId" = categories.id`
+                );
+            };
+        };
+
+        for ( let rent of rentalsList.rows ) {
+            rent.customer = { id: rent.customerId, name: rent.customerName };
+            rent.game = { id: rent.gameId, name: rent.gameName, categoryId: rent.categoryId, categoryName: rent.categoryName };
+            delete rent.customerName;
+            delete rent.gameName;
+            delete rent.categoryId;
+            delete rent.categoryName;
+        }
+
+        return response.send(rentalsList.rows);
+
+    } catch(error) {
+        console.log(error);
+        //RETURNING INTERNAL SERVER ERROR
+        return response.sendStatus(500);
+    };
+}
+
 export async function addNewRent(request, response) {
 
     const rent = request.body;
