@@ -1,17 +1,11 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
 
-const { Pool } = pg;
-const user = process.env.USER;
-const password = process.env.PASSWORD;
-const host = process.env.URI;
-const port = 5432;
-const database = 'database_name';
+dotenv.config();
 
+const { Pool } = pg;
 const conection = new Pool ({
-    user, 
-    password, 
-    host,
-    port,
-    database
+    connectionString: process.env.POSTGRES_URI
 });
+
+export default conection;
