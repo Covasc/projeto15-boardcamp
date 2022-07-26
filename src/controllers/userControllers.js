@@ -326,10 +326,9 @@ export async function addNewRent(request, response) {
             `SELECT * FROM customers WHERE id = $1`, [rent.customerId]
         );
         const { rows: rents } = await conection.query(
-            `SELECT * FROM rentals WHERE "gameId"= $1`, [rent.gameId]
+            `SELECT * FROM rentals WHERE "gameId"= $1 AND "returnDate" IS NULL`, [rent.gameId]
         );
         const numberOfRents = rents.length;
-        
         const game = gameList[0];
         const customer = customerList[0];
 
@@ -343,6 +342,41 @@ export async function addNewRent(request, response) {
         } else {
             return response.sendStatus(400);
         };
+    } catch(error) {
+        console.log(error);
+        //RETURNING INTERNAL SERVER ERROR
+        return response.sendStatus(500);
+    };
+}
+
+export async function returnRent (request, response) {
+
+    const id = Number(request.params.id);
+
+    try {
+        const { rows: rentExists } = await conection.query(
+            `SELECT * FROM rentals WHERE id = $1`,
+            [id] 
+        )
+        if (rentExists[0]?.id && rentExists[0]?.returnDate == null) {
+            
+            const renturnDay = dayjs(rentExists[0].rentDate);
+            const days = Math.ceil(renturnDay.diff(Date(), 'day', true));
+            const pricePerDay = rentExists[0].originalPrice / rentExists[0].daysRented;
+            let delayFee;
+
+            days < 0 ? delayFee = days*pricePerDay*-1 : delayFee = 0;
+            
+            await conection.query(
+                `UPDATE rentals SET "returnDate" = $2, "delayFee" = $3
+                WHERE id = $1`,
+                [id, dayjs(Date()).format('YYYY-MM-DD'), delayFee]
+            );
+            return response.sendStatus(200);
+        } else {
+            return response.sendStatus(400);
+        }
+
     } catch(error) {
         console.log(error);
         //RETURNING INTERNAL SERVER ERROR

@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { getCategoriesList, addNewCategory, addNewGame, getGamesList, addNewCustomer, getCustomersList, getCustomerById, updateCustomer, addNewRent, getRentalsList } from './src/controllers/userControllers.js';
+import { getCategoriesList, addNewCategory, addNewGame, getGamesList, addNewCustomer, getCustomersList, getCustomerById, updateCustomer, addNewRent, getRentalsList, returnRent } from './src/controllers/userControllers.js';
 
 const server = express();
 server.use(express.json());
@@ -21,6 +21,7 @@ server.post('/customers', addNewCustomer);
 server.put('/customers/:id', updateCustomer);
 server.get('/rentals', getRentalsList);
 server.post('/rentals', addNewRent);
+server.post('/rentals/:id/return', returnRent);
 
 server.listen(PORT, () => {
     console.log('Server running')
