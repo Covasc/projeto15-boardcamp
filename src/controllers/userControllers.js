@@ -171,7 +171,7 @@ export async function getCustomerById(request, response) {
         //RETURNING INTERNAL SERVER ERROR
         return response.sendStatus(500);
     };
-}
+};
 
 export async function addNewCustomer(request, response) {
 
@@ -250,7 +250,7 @@ export async function updateCustomer(request, response) {
         //RETURNING INTERNAL SERVER ERROR
         return response.sendStatus(500);
     };
-}
+};
 
 export async function getRentalsList(request, response) {
 
@@ -302,7 +302,7 @@ export async function getRentalsList(request, response) {
         //RETURNING INTERNAL SERVER ERROR
         return response.sendStatus(500);
     };
-}
+};
 
 export async function addNewRent(request, response) {
 
@@ -347,7 +347,7 @@ export async function addNewRent(request, response) {
         //RETURNING INTERNAL SERVER ERROR
         return response.sendStatus(500);
     };
-}
+};
 
 export async function returnRent (request, response) {
 
@@ -366,7 +366,7 @@ export async function returnRent (request, response) {
             let delayFee;
 
             days < 0 ? delayFee = days*pricePerDay*-1 : delayFee = 0;
-            
+
             await conection.query(
                 `UPDATE rentals SET "returnDate" = $2, "delayFee" = $3
                 WHERE id = $1`,
@@ -382,4 +382,33 @@ export async function returnRent (request, response) {
         //RETURNING INTERNAL SERVER ERROR
         return response.sendStatus(500);
     };
-}
+};
+
+export async function deleteRent (request, response) {
+
+    const id = Number(request.params.id);
+
+    try {
+        const { rows: rentExists } = await conection.query(
+            `SELECT * FROM rentals WHERE id = $1` , [id]
+        );
+
+        if (rentExists[0]?.id) {
+            if (rentExists[0].returnDate == null) {
+                return response.sendStatus(400);
+            } else {
+                await conection.query(
+                    `DELETE FROM rentals WHERE id = $1`, [id]
+                );
+                return response.sendStatus(200);
+            }
+        } else {
+            return response.sendStatus(404);
+        };
+    } catch (error) {
+        console.log(error);
+        //RETURNING INTERNAL SERVER ERROR
+        return response.sendStatus(500);
+    };
+
+};
